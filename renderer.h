@@ -10,6 +10,12 @@
 constexpr int WINDOW_HEIGHT = 900;
 constexpr int WINDOW_WIDTH = 900;
 
+struct color {
+    int r, g, b, a;
+};
+
+constexpr color color_black = {0, 0, 0, 255};
+constexpr color color_white = {255, 255, 255, 255};
 
 class board_renderer {
     board* m_board;

@@ -35,14 +35,33 @@ void board_renderer::start() {
         if (SDL_PollEvent(&m_event) && m_event.type == SDL_QUIT)
             break;
         draw_board();
+        for (int i = 0; i < BOARD_WIDTH; i++) {
+            for (int j = 0; j < BOARD_WIDTH; j++) {
+              //  draw_piece(i, j, m_board[i][j]);
+            }
+        }
+        SDL_RenderPresent(m_renderer);
     }
 }
 
 void board_renderer::draw_board() const {
-    // Create checkerboard
-    for (int x = 0; x < WINDOW_WIDTH; x++) {
-        for (int y = 0; y < WINDOW_HEIGHT; y++) {
-            if (x / WINDOW_HEIGHT)
+    constexpr int tile_width = WINDOW_WIDTH / BOARD_WIDTH;
+    constexpr int tile_height = WINDOW_HEIGHT / BOARD_HEIGHT;
+    for (int x = 0; x < BOARD_WIDTH; x++) {
+        for (int y = 0; y < BOARD_HEIGHT; y++) {
+            // Alternate colors
+            if ((x + y) % 2 != 0)
+                SDL_SetRenderDrawColor(m_renderer, color_black.r, color_black.g, color_black.b, color_black.a); // White
+            else
+                SDL_SetRenderDrawColor(m_renderer, color_white.r, color_white.g, color_white.b, color_white.a);       // Black
+
+            SDL_Rect tile_rect = {
+                x * tile_width,
+                y * tile_height,
+                tile_width,
+                tile_height
+            };
+            SDL_RenderFillRect(m_renderer, &tile_rect);
         }
     }
 }

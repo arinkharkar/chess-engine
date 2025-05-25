@@ -14,6 +14,9 @@ add_executable(chess_engine main.cpp
         renderer.h
         board.cpp
         board.h
+        main.h
+        engine.cpp
+        engine.h
 )
 
 target_link_libraries(chess_engine ${SDL2_LIBRARIES})
