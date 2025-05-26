@@ -4,95 +4,196 @@
 
 #include "board.h"
 
+#include <bitset>
+#include <cstring>
 #include <iostream>
 
 board::board() : board(FEN_DEFAULT) {}
 
 board::board(const std::string &fen) {
     // parse a FEN string
-    int curX = 0;
-    int curY = 0;
-    for (int i = 0; i < fen.length(); i++) {
-        switch (fen[i]) {
-            // if theres a slash, its the end of the line
-            case '/':
-                curY++;
-                break;
-            case 'r':
-                m_board[curX][curY] = ROOK_BLACK;
-                break;
-            case 'n':
-                m_board[curX][curY] = KNIGHT_BLACK;
-                break;
-            case 'b':
-                m_board[curX][curY] = BISHOP_BLACK;
-                break;
-            case 'q':
-                m_board[curX][curY] = QUEEN_BLACK;
-                break;
-            case 'k':
-                m_board[curX][curY] = KING_BLACK;
-                break;
-            case 'p':
-                m_board[curX][curY] = PAWN_BLACK;
-                break;
-            case 'R':
-                m_board[curX][curY] = ROOK_WHITE;
-                break;
-            case 'N':
-                m_board[curX][curY] = KNIGHT_WHITE;
-                break;
-            case 'B':
-                m_board[curX][curY] = BISHOP_WHITE;
-                break;
-            case 'Q':
-                m_board[curX][curY] = QUEEN_WHITE;
-                break;
-            case 'K':
-                m_board[curX][curY] = KING_WHITE;
-                break;
-            case 'P':
-                m_board[curX][curY] = PAWN_WHITE;
-                break;
-            default:
-                if (fen[i] >= '0' && fen[i] <= '9') {
-                    curX += fen[i] - '0';
-                } else {
-                    std::cerr << "ERROR: Invalid FEN: " << fen;
-                    exit(1);
-                }
+
+
+    // first, reset the board
+    for (int i = 0; i < BOARD_HEIGHT+1; i++) {
+        for (int j = 0; j < BOARD_WIDTH+1; j++) {
+            m_board[j][i] = NO_PIECE;
         }
-        if (curX < BOARD_WIDTH - 1)
-            curX++;
-        else
-            curX = 0;
-        // if we have reached the end of the board, break
-        if (curX == BOARD_WIDTH - 1 && curY == BOARD_HEIGHT - 1)
+    }
+    int curX = 1;       // File (a–h), starts at 1
+    int curY = BOARD_HEIGHT;       // Rank (8–1), starts at 8
+    size_t i;
+    for (i = 0; i < fen.length(); i++) {
+        char p = fen[i];
+
+        // Handle the numbers here, they do not belong in the switch
+        if (p >= '1' && p <= '8') {
+            curX += p - '0';
+        } else if (p == ' ') {
             break;
+        } else {
+            switch (p) {
+                case '/': curY--; curX=1; break;
+                case 'r': m_board[curX][curY] = ROOK_BLACK; curX++; break;
+                case 'n': m_board[curX][curY] = KNIGHT_BLACK; curX++; break;
+                case 'b': m_board[curX][curY] = BISHOP_BLACK; curX++; break;
+                case 'q': m_board[curX][curY] = QUEEN_BLACK; curX++; break;
+                case 'k': m_board[curX][curY] = KING_BLACK; curX++; break;
+                case 'p': m_board[curX][curY] = PAWN_BLACK; curX++; break;
+                case 'R': m_board[curX][curY] = ROOK_WHITE; curX++; break;
+                case 'N': m_board[curX][curY] = KNIGHT_WHITE; curX++; break;
+                case 'B': m_board[curX][curY] = BISHOP_WHITE; curX++; break;
+                case 'Q': m_board[curX][curY] = QUEEN_WHITE; curX++; break;
+                case 'K': m_board[curX][curY] = KING_WHITE; curX++; break;
+                case 'P': m_board[curX][curY] = PAWN_WHITE; curX++; break;
+                default: std::cerr << "Unknown piece in FEN string: '" << p << "'" << std::endl; exit(1); break;
+            }
+        }
     }
 
-    m_turn = turn::white;
-    is_check = false;
-    is_checkmate = false;
-    white_can_castle = false;
-    black_can_castle = false;
+    // After loop: ensure board is complete
+    if (curY != 1 || curX != 9) {
+        std::cerr << "FEN parsing incomplete: did not fill exactly 8x8 board.\n";
+        exit(1);
+    }
+
+
+
+
+    /* now parse the rest of the FEN */
+    // Check the FEN is long enough
+    // if the next char is a 'w', it is whites turn to move
+    end_loop:
+    i++;
+
+    if (i >= fen.size()) {
+        std::cerr << "ERROR: Invalid FEN: " << fen;
+        exit(1);
+    }
+    if (fen[i] == 'w')
+        m_turn = turn::white;
+    else if (fen[i] == 'b')
+        m_turn = turn::black;
+    else {
+        std::cerr << "ERROR: Invalid FEN: " << fen;
+        exit(1);
+    }
+
+    i+=2;
+    // check the Queen and King castling rights
+    while (fen[i] != ' ') {
+        if (i == fen.size()) {
+            std::cerr << "ERROR: Invalid FEN: " << fen;
+            exit(1);
+        }
+        switch (fen[i]) {
+            case 'Q':
+                m_white_queen_castle = true;
+                break;
+            case 'q':
+                m_black_queen_castle = true;
+                break;
+            case 'K':
+                m_white_king_castle = true;
+                break;
+            case 'k':
+                m_black_king_castle = true;
+                break;
+            case '-':
+                break;
+            default:
+                std::cerr << "ERROR: Invalid FEN: " << fen;
+                exit(1);
+        }
+        i++;
+    }
+
+    i++;
+
+    if (fen[i] == '-') {
+        // invalid position, since no en passant
+        m_en_passant_position = std::make_pair(0, 0);
+    } else {
+        if (fen[i] <'a' || fen[i] > 'h') {
+            std::cerr << "ERROR: Invalid FEN: " << fen;
+            exit(1);
+        }
+        int x_coord = fen[i] - 'a' + 1;
+        i++;
+        if (fen[i] < '0' || fen[i] > '8') {
+            std::cerr << "ERROR: Invalid FEN: " << fen;
+            exit(1);
+        }
+        int y_coord = fen[i] - '0' + 1;
+        std::cout << "En Passant at: " << x_coord << ", " << y_coord << std::endl;
+    }
+    i+=2;
+    // now get the halfmove number
+    std::string halfmove_number_str;
+    while (fen[i] != ' ') {
+        if (i == fen.size()) {
+            std::cerr << "ERROR: Invalid FEN: " << fen;
+            exit(1);
+        }
+        halfmove_number_str += fen[i];
+        i++;
+    }
+
+    try {
+        m_halfmove_number = std::stoi(halfmove_number_str);
+    } catch (std::invalid_argument& e) {
+        std::cerr << "ERROR: Invalid FEN: " << fen;
+        exit(1);
+    }
+    i++;
+    // finally, get the fullmove number
+    std::string fullmove_number_str;
+    while (fen[i] != ' ') {
+        if (i == fen.size()) {
+            // we reached the end of the string
+            break;
+        }
+        fullmove_number_str += fen[i];
+        i++;
+    }
+
+    try {
+        m_fullmove_number = std::stoi(fullmove_number_str);
+    } catch (std::invalid_argument& e) {
+        std::cerr << "ERROR: Invalid FEN: " << fen;
+        exit(1);
+    }
 }
 
 void board::print() {
     std::string board_str;
-    for (int y = 0; y < BOARD_HEIGHT; y++) {
-        for (int x = BOARD_WIDTH-1; x >= 0; x--) {
-            if (x == BOARD_WIDTH - 1) {
-                board_str += (char('8' - y));
+    for (int y = BOARD_HEIGHT; y > 0; y--) {
+        for (int x = 1; x <= BOARD_WIDTH; x++) {
+            // print the row
+            if (x == 1) {
+                board_str += (char('0' + y));
                 board_str += ' ';
             }
             bool white = false;
+
+            piece p;
+
             // if the piece is white
-            if (m_board[x][y] & WHITE)
+            if (m_board[x][y] & WHITE) {
                 white = true;
+                p = piece(m_board[x][y] & ~WHITE);
+                // if the piece is black
+            } else if (m_board[x][y] & BLACK) {
+                white = false;
+                p = piece(m_board[x][y] & ~BLACK);
+            } else if (m_board[x][y] != NO_PIECE) {
+                std::cerr << "ERROR: No color attatched to piece: " << m_board[x][y];
+            } else {
+                p = NO_PIECE;
+            }
 
             // unset the white bit, we already know if the piece is white or not
-            switch (m_board[x][y] & ~WHITE) {
+            switch (p) {
                 case PAWN:
                     if (white)
                         board_str += 'P';
@@ -133,16 +234,40 @@ void board::print() {
                     board_str += 'x';
                     break;
                 default:
-                    fprintf(stderr, "Invalid Board State: %d piece found!", m_board[x][y] & ~WHITE);
+                    board_str += m_board[x][y] & ~WHITE;
+                    break;
+                    fprintf(stderr, "Invalid Board State: %d found at %d %d!\n", m_board[x][y] & ~WHITE, x, y);
+                    fprintf(stderr, "Current board string: \n%s", board_str.c_str());
                     exit(EXIT_FAILURE);
             }
 
             board_str += ' ';
         }
         board_str += '\n';
-        if (y == BOARD_HEIGHT-1)
-            board_str += "  a b c d e f g h\n";
+        // if we have reached the last rank (1), add the file letters to the end
+        if (y == 1)
+            board_str += "  A B C D E F G H\n";
     }
+
+
+    if (m_black_king_castle)
+        board_str += "Black King castle\n";
+    if (m_black_queen_castle)
+        board_str += "Black Queen castle\n";
+    if (m_white_king_castle)
+        board_str += "White King castle\n";
+    if (m_white_queen_castle)
+        board_str += "White Queen castle\n";
+    if (m_turn == turn::white)
+        board_str += "White to move\n";
+    else if (m_turn == turn::black)
+        board_str += "Black to move\n";
+    if (m_is_check)
+        board_str += "Check\n";
+    if (m_is_checkmate)
+        board_str += "Checkmate\n";
+    board_str += "number of halfmoves: " + std::to_string(m_halfmove_number) + "\n";
+
     std::cout << board_str << std::endl;
 }
 
@@ -166,3 +291,18 @@ void board::place_piece(const piece placed_piece, const int x, const int y) {
     m_board[x][y] = placed_piece;
 }
 
+position board::find_piece(piece p) const {
+    for (int i = 0; i < BOARD_WIDTH; i++) {
+        for (int j = 0; j < BOARD_HEIGHT; j++) {
+            if (m_board[i][j] == p) {
+                return std::make_pair(i, j);
+            }
+        }
+    }
+    return std::make_pair(-1, -1);
+}
+
+
+turn board::get_turn() const {
+    return m_turn;
+}

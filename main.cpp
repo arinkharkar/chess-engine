@@ -1,4 +1,8 @@
 #include "main.h"
+
+#include <iostream>
+#include <bits/ostream.tcc>
+
 #include "renderer.h"
 #include "engine.h"
 
@@ -9,8 +13,16 @@ int main(int argc, char* argv[]) {
     }
     engine* eng = new engine();
     eng->print_board();
-    return 0;
-    eng->get_legal_moves();
+
+    std::vector<move> moves = eng->get_legal_moves();
+    std::cout << "Found " << moves.size() << " legal moves" << std::endl;
+    for (const move& move : moves) {
+       // if (move.p == BISHOP)
+      //  std::cout << "moving " << move.p << " from: " << move.start.first << ", " << move.start.second << "\nto: " << move.end.first << ", " << move.end.second << " capture: " << move.is_capture  << std::endl;
+    }
+    move m = move(ROOK, std::make_pair(7,4), std::make_pair(5,4));
+    std::cout << "r: " << eng->results_in_check(m) << std::endl;
+  //  eng->print_board();
 }
 
 
@@ -23,7 +35,7 @@ bool gui_enabled(int argc, char** argv) {
         printf("Kngine v 0.0.1, Estimated ELO: 0");
         exit(0);
     } else if (!strcmp(argv[1], "-h") || !strcmp(argv[1], "--help")) {
-        printf("USAGE: chess-engine [-g for GUI]");
+        printf("USAGE: %s [-g for GUI]", argv[0]);
         exit(0);
     } else if (!strcmp(argv[1], "-g") || !strcmp(argv[1], "--gui")) {
         return true;

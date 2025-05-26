@@ -25,15 +25,18 @@ public:
 
     void print_board();
 
-    void generate_pawn_moves(position& pos, std::vector<move>* moves);
-    void generate_knight_moves(position& pos, std::vector<move>* moves);
-    void generate_bishop_moves(position& pos, std::vector<move>* moves);
-    void generate_rook_moves(position& pos, std::vector<move>* moves);
-    void generate_queen_moves(position& pos, std::vector<move>* moves);
-    void generate_king_moves(position& pos, std::vector<move>* moves);
+    void generate_pawn_moves(position& pos, std::vector<move>* moves, piece p);
+    void generate_knight_moves(position& pos, std::vector<move>* moves, piece p);
+    void generate_bishop_moves(position& pos, std::vector<move>* moves, piece p);
+    void generate_rook_moves(position& pos, std::vector<move>* moves, piece p);
+    void generate_queen_moves(position& pos, std::vector<move>* moves, piece p);
+    void generate_king_moves(position& pos, std::vector<move>* moves, piece p);
+
+    bool results_in_check(move& move);
 
 
-    bool is_legal_move(move m);
+    // returns true if the move was valid, false if not
+    bool make_move(move& move);
 };
 
 
