@@ -16,33 +16,33 @@ private:
     Board* m_board;
 
     // gets all legal moves not including checks
-    std::vector<move> get_legal_moves_not_check();
+    std::vector<Move> get_legal_moves_not_check();
 
 public:
     Engine();
     ~Engine();
 
 
-    std::vector<move> get_legal_moves();
+    std::vector<Move> get_legal_moves();
 
-    std::vector<move> get_legal_piece_moves(Piece piece, Position pos);
+    std::vector<Move> get_legal_piece_moves(Piece piece, Position pos);
 
-    void print_board();
+    void print_board() const;
 
-    void generate_pawn_moves(Position& pos, std::vector<move>* moves, Piece p);
-    void generate_knight_moves(Position& pos, std::vector<move>* moves, Piece p);
-    void generate_bishop_moves(Position& pos, std::vector<move>* moves, Piece p);
-    void generate_rook_moves(Position& pos, std::vector<move>* moves, Piece p);
-    void generate_queen_moves(Position& pos, std::vector<move>* moves, Piece p);
-    void generate_king_moves(Position& pos, std::vector<move>* moves, Piece p);
+    void generate_pawn_moves(Position& pos, std::vector<Move>* moves, Piece p) const;
+    void generate_knight_moves(Position& pos, std::vector<Move>* moves, Piece p);
+    void generate_bishop_moves(Position& pos, std::vector<Move>* moves, Piece piece) const;
+    void generate_rook_moves(Position& pos, std::vector<Move>* moves, Piece piece) const;
+    void generate_queen_moves(Position& pos, std::vector<Move>* moves, Piece p) const;
+    void generate_king_moves(Position& pos, std::vector<Move>* moves, Piece p);
 
-    bool results_in_check(move& move);
+    bool results_in_check(Move& move);
 
     [[nodiscard]] Board* get_board() const {
         return m_board;
     }
     // returns true if the move was valid, false if not
-    bool make_move(move& move) const;
+    bool make_move(Move& move) const;
 };
 
 

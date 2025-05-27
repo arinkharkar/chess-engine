@@ -8,7 +8,7 @@
 #include <ostream>
 #include <string>
 
-constexpr const char* FEN_DEFAULT = "8/8/8/br6/8/8/8/R3K3 w Q - 0 1";
+constexpr const char* FEN_DEFAULT = "8/8/8/8/8/8/8/R3K3 w Q - 0 1";
 
 enum Piece {
     NO_PIECE = 0,
@@ -188,38 +188,50 @@ public:
     [[nodiscard]] Position find_piece(Piece p) const;
 };
 
-class move {
+class Move {
 public:
-    Piece p;
+    Piece piece;
     Position start;
     Position end;
     bool is_capture;
 
-    move() {
-        p = NO_PIECE;
+    Move() {
+        piece = NO_PIECE;
         start = std::make_pair(-1, -1);
         end = std::make_pair(-1, -1);
         is_capture = false;
     }
-    move(Board* b, Position start, Position end) {
-        this->p = b->get_piece(start);
+    Move(Board* b, Position start, Position end) {
+        this->piece = b->get_piece(start);
         this->start = start;
         this->end = end;
         this->is_capture = false;
     }
 
-    move(Piece p, Position start, Position end) {
-        this->p = p;
+    Move(Piece p, Position start, Position end) {
+        this->piece = p;
         this->start = start;
         this->end = end;
         this->is_capture = false;
     }
 
-    move(Piece p, Position start, Position end, bool is_capture) {
-        this->p = p;
+    Move(Piece p, Position start, Position end, bool is_capture) {
+        this->piece = p;
         this->start = start;
         this->end = end;
         this->is_capture = is_capture;
+    }
+    bool is_castle() const {
+        // (this->end.first == 8 && this->end.second == 8) || (this->end.first == 1 && this->end.second == 8)
+        if (piece != KING_BLACK && piece != KING_WHITE)
+            return false;
+        if (((this->end.first == 1 && this->end.second == 1) || (this->end.first == 8 && this->end.second == 1)) && (this->start.first == 5 && this->start.second == 1)) {
+            return true;
+        }
+        if (((this->end.first == 8 && this->end.second == 8) || (this->end.first == 1 && this->end.second == 8)) && (this->start.first == 5 && this->start.second == 8)) {
+            return true;
+        }
+        return false;
     }
 };
 
