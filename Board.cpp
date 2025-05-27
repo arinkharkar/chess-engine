@@ -2,15 +2,15 @@
 // Created by arin on 5/25/25.
 //
 
-#include "board.h"
+#include "Board.h"
 
 #include <bitset>
 #include <cstring>
 #include <iostream>
 
-board::board() : board(FEN_DEFAULT) {}
+Board::Board() : Board(FEN_DEFAULT) {}
 
-board::board(const std::string &fen) {
+Board::Board(const std::string &fen) {
     // parse a FEN string
 
 
@@ -71,9 +71,9 @@ board::board(const std::string &fen) {
         exit(1);
     }
     if (fen[i] == 'w')
-        m_turn = turn::white;
+        m_turn = Turn::white;
     else if (fen[i] == 'b')
-        m_turn = turn::black;
+        m_turn = Turn::black;
     else {
         std::cerr << "ERROR: Invalid FEN: " << fen;
         exit(1);
@@ -165,7 +165,7 @@ board::board(const std::string &fen) {
     }
 }
 
-void board::print() {
+void Board::print() {
     std::string board_str;
     for (int y = BOARD_HEIGHT; y > 0; y--) {
         for (int x = 1; x <= BOARD_WIDTH; x++) {
@@ -176,16 +176,16 @@ void board::print() {
             }
             bool white = false;
 
-            piece p;
+            Piece p;
 
             // if the piece is white
             if (m_board[x][y] & WHITE) {
                 white = true;
-                p = piece(m_board[x][y] & ~WHITE);
+                p = Piece(m_board[x][y] & ~WHITE);
                 // if the piece is black
             } else if (m_board[x][y] & BLACK) {
                 white = false;
-                p = piece(m_board[x][y] & ~BLACK);
+                p = Piece(m_board[x][y] & ~BLACK);
             } else if (m_board[x][y] != NO_PIECE) {
                 std::cerr << "ERROR: No color attatched to piece: " << m_board[x][y];
             } else {
@@ -258,9 +258,9 @@ void board::print() {
         board_str += "White King castle\n";
     if (m_white_queen_castle)
         board_str += "White Queen castle\n";
-    if (m_turn == turn::white)
+    if (m_turn == Turn::white)
         board_str += "White to move\n";
-    else if (m_turn == turn::black)
+    else if (m_turn == Turn::black)
         board_str += "Black to move\n";
     if (m_is_check)
         board_str += "Check\n";
@@ -271,31 +271,44 @@ void board::print() {
     std::cout << board_str << std::endl;
 }
 
-void board::reset_board() {
-    board(FEN_DEFAULT);
+bool Board::in_bounds(int x, int y) {
+    if (x < 1 || x > BOARD_WIDTH || y < 1 || y > BOARD_HEIGHT)
+        return false;
+    return true;
 }
 
-piece board::get_piece(position pos) const {
+bool Board::in_bounds(Position pos) {
+    if (pos.first < 1 || pos.first > BOARD_WIDTH || pos.second < 1 || pos.second > BOARD_HEIGHT)
+        return false;
+    return true;
+}
+
+
+void Board::reset_board() {
+    Board(FEN_DEFAULT);
+}
+
+Piece Board::get_piece(Position pos) const {
     return m_board[pos.first][pos.second];
 }
 
-piece board::get_piece(int x, int y) const {
+Piece Board::get_piece(int x, int y) const {
     return m_board[x][y];
 }
 
-void board::place_piece(piece placed_piece, position pos) {
+void Board::place_piece(Piece placed_piece, Position pos) {
     m_board[pos.first][pos.second] = placed_piece;
 }
 
-void board::place_piece(const piece placed_piece, const int x, const int y) {
+void Board::place_piece(const Piece placed_piece, const int x, const int y) {
     m_board[x][y] = placed_piece;
 }
 
-position board::find_piece(piece p) const {
-    for (int i = 0; i < BOARD_WIDTH; i++) {
-        for (int j = 0; j < BOARD_HEIGHT; j++) {
-            if (m_board[i][j] == p) {
-                return std::make_pair(i, j);
+Position Board::find_piece(Piece p) const {
+    for (int y = BOARD_HEIGHT; y > 0; y--) {
+        for (int x = 1; x <= BOARD_WIDTH; x++) {
+            if (m_board[x][y] == p) {
+                return std::make_pair(x, y);
             }
         }
     }
@@ -303,6 +316,6 @@ position board::find_piece(piece p) const {
 }
 
 
-turn board::get_turn() const {
+Turn Board::get_turn() const {
     return m_turn;
 }

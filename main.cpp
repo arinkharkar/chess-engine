@@ -4,25 +4,25 @@
 #include <bits/ostream.tcc>
 
 #include "renderer.h"
-#include "engine.h"
+#include "Engine.h"
 
 int main(int argc, char* argv[]) {
     if (gui_enabled(argc, argv)) {
         fprintf(stderr, "ERROR: GUI not supported currently");
         exit(1);
     }
-    engine* eng = new engine();
+    Engine* eng = new Engine();
     eng->print_board();
 
     std::vector<move> moves = eng->get_legal_moves();
     std::cout << "Found " << moves.size() << " legal moves" << std::endl;
     for (const move& move : moves) {
        // if (move.p == BISHOP)
-      //  std::cout << "moving " << move.p << " from: " << move.start.first << ", " << move.start.second << "\nto: " << move.end.first << ", " << move.end.second << " capture: " << move.is_capture  << std::endl;
+        std::cout << "moving " << to_string(move.p) << " from: " << move.start.first << ", " << move.start.second << "\nto: " << move.end.first << ", " << move.end.second << " capture: " << move.is_capture  << std::endl;
     }
-    move m = move(ROOK, std::make_pair(7,4), std::make_pair(5,4));
-    std::cout << "r: " << eng->results_in_check(m) << std::endl;
-  //  eng->print_board();
+    //move m = move(eng->get_board(), std::make_pair(4,6), std::make_pair(7,6));
+    //std::cout << "r: " << eng->results_in_check(m) << std::endl;
+    //eng->print_board();
 }
 
 

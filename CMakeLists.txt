@@ -12,11 +12,11 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(chess_engine main.cpp
         renderer.cpp
         renderer.h
-        board.cpp
-        board.h
+        Board.cpp
+        Board.h
         main.h
-        engine.cpp
-        engine.h
+        Engine.cpp
+        Engine.h
 )
 
 target_link_libraries(chess_engine ${SDL2_LIBRARIES})

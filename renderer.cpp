@@ -6,14 +6,14 @@
 #include "renderer.h"
 
 
-board_renderer::board_renderer(board *b) {
+Board_Renderer::Board_Renderer(Board *b) {
     m_board = b;
     printf("her");
     init_sdl();
 }
 
 
-void board_renderer::init_sdl() {
+void Board_Renderer::init_sdl() {
     if (SDL_Init(SDL_INIT_VIDEO))
         fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
     SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGHT, 0, &m_window, &m_renderer);
@@ -30,7 +30,7 @@ void board_renderer::init_sdl() {
 
 }
 
-void board_renderer::start() {
+void Board_Renderer::start() {
     while (true) {
         if (SDL_PollEvent(&m_event) && m_event.type == SDL_QUIT)
             break;
@@ -44,7 +44,7 @@ void board_renderer::start() {
     }
 }
 
-void board_renderer::draw_board() const {
+void Board_Renderer::draw_board() const {
     constexpr int tile_width = WINDOW_WIDTH / BOARD_WIDTH;
     constexpr int tile_height = WINDOW_HEIGHT / BOARD_HEIGHT;
     for (int x = 0; x < BOARD_WIDTH; x++) {
@@ -66,7 +66,7 @@ void board_renderer::draw_board() const {
     }
 }
 
-board* board_renderer::get_board() const {
+Board* Board_Renderer::get_board() const {
     return m_board;
 }
 
